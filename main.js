@@ -57,18 +57,20 @@ function integerComparator(a, b) {
 }
 
 app.get("/", async (request, response) => {
-    response.send("<h1>Welcome</h1>" 
-    + "<h3> Available endpoints </h3>" 
-    + "<ul>" 
-    + "<li> "
-    + "GET: /people "     
-    + "<ul>" 
-    + "<li> <b> Sort by </b>: name, height or mass </li>"    
-    + "<li> <b> Example </b>: /people/?sortBy=height </li>"    
-    + "</ul>" 
-    + "</li>"
-    + "<li> GET: /planets </li>"
-    + "</ul>")
+  response.send(
+    "<h1>Welcome</h1>" +
+      "<h3> Available endpoints </h3>" +
+      "<ul>" +
+      "<li> " +
+      "GET: /people " +
+      "<ul>" +
+      "<li> <b> Sort by </b>: name, height or mass </li>" +
+      "<li> <b> Example </b>: /people/?sortBy=height </li>" +
+      "</ul>" +
+      "</li>" +
+      "<li> GET: /planets </li>" +
+      "</ul>"
+  );
 });
 
 app.get("/people", async (request, response) => {
