@@ -18,10 +18,12 @@ var swapi = {
       if (!results) {
         results = [];
       }
+      // Add the current results to the results we've gather so far
       results = results.concat(response.results);
 
       console.log(results.length + " results so far");
 
+      // If there is more results then we recursively get the next 10 results
       if (response.next) {
         console.log("There is more.");
         return swapi.getListRequest(response.next, results);
@@ -30,6 +32,7 @@ var swapi = {
     });
   },
   getResidents: function(planets) {
+    // We collect list of list of promises and return them
     let allPromises = planets.map(planet => {
       return planet.residents_urls.map(url => {
         return request({
@@ -46,9 +49,11 @@ var swapi = {
 };
 
 function integerComparator(a, b) {
+  // Remove comma from string number and then parse
   let a1 = parseInt(a.mass.replace(/,/g, ""));
   let b1 = parseInt(b.mass.replace(/,/g, ""));
 
+  // A lot of people have an 'unknown' mass so this handles that
   if (isNaN(a1)) {
     return 1 - isNaN(b1);
   } else {
@@ -62,13 +67,13 @@ app.get("/", async (request, response) => {
       "<h3> Available endpoints </h3>" +
       "<ul>" +
       "<li> " +
-      "GET: /people " +
+      "GET: <a href='/people'> /people </a> " +
       "<ul>" +
       "<li> <b> Sort by </b>: name, height or mass </li>" +
       "<li> <b> Example </b>: /people/?sortBy=height </li>" +
       "</ul>" +
       "</li>" +
-      "<li> GET: /planets </li>" +
+      "GET: <a href='/planets'> /planets </a> " +
       "</ul>"
   );
 });
@@ -79,7 +84,7 @@ app.get("/people", async (request, response) => {
     .then(people => {
       switch (request.query.sortBy) {
         case "name":
-          console.log("Lets sort by name!");
+          console.log("By name!");
           people.sort((a, b) => {
             if (a.name < b.name) return -1;
             if (a.name > b.name) return 1;
@@ -109,6 +114,8 @@ app.get("/planets", async (_, response) => {
   swapi
     .getListRequest(HOST + PLANETS_PATH)
     .then(p => {
+      // Save the resident urls elsewhere so
+      // that we can store the names in residents field
       let planets = p.map(planet => {
         let res = planet.residents;
         planet.residents_urls = res;
@@ -116,11 +123,16 @@ app.get("/planets", async (_, response) => {
         return planet;
       });
 
-      let res = swapi.getResidents(planets);
+      // These are the promises of the residents it's a list of list of promises
+      let promiseResults = swapi.getResidents(planets);
 
-      let flatPromises = [].concat.apply([], res);
+      // Flatten out the promises into a single list
+      let flatPromises = [].concat.apply([], promiseResults);
+
+      // Wait for all the promises to finish
       Promise.all(flatPromises).then(() => {
         planets.forEach(planet => {
+          // We don't need residents_urls so we remove this field
           delete planet.residents_urls;
         });
         response.send(JSON.stringify(planets));
@@ -136,6 +148,5 @@ app.listen(port, err => {
   if (err) {
     return console.log("something bad happened", err);
   }
-
   console.log(`server is listening on ${port}`);
 });
